@@ -1,0 +1,35 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>UMD Scheduel Posibilities</title>
+        <meta name="description" content="Information on possible schedules for the user">
+    </head>
+
+    <body>
+        <h1>Possible Schedules</h1>
+        <p>All possible schedules with the given restraints</p>
+
+        {% for schedule in all_schedules %}
+            <h3>Schedule {{ loop.index }}:</h3>
+            <ul>
+                {% for section in schedule %}
+                    <li><b>{{ section.course }} - {{ section.section }} with {{ section.professor.name }} (Rating: {{ section.professor.rating }})</b></li>
+                    <ul>
+                        {% for meeting in section.classtimes %}
+                            <li>{{ meeting }}</li>
+                        {% endfor %}
+                        <li>Seats - Total: {{ section.seats[0] }} | Open: {{ section.seats[1] }} | Waitlist: {{ section.seats[2] }}</li>
+                        <li>Alternate(s): {{ section.alternates }}</li>
+                    </ul>
+                    <br>
+                {% endfor %}
+            </ul>
+            <br>
+        {% endfor %}
+
+    </body>
+</html>

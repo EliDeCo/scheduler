@@ -1,0 +1,33 @@
+{
+  "UMRO": {
+    "0000": {
+      "professor": {
+        "name": "Unknown",
+        "rating": 0.0
+      },
+      "classtimes": {
+        "1": [
+          {
+            "building": "PAC",
+            "start": 1500,
+            "end": 1700
+          }
+        ],
+        "3": [
+          {
+            "building": "PAC",
+            "start": 1500,
+            "end": 1700
+          }
+        ]
+      },
+      "course": "UMRO",
+      "section": "0000",
+      "seats": [
+        0,
+        0,
+        0
+      ]
+    }
+  }
+}

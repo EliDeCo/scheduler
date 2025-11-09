@@ -1,0 +1,57 @@
+Viable Schedules
+
+Schedule 1:
+ENES102-0902, Unknown
+ENES200-0503, Unknown
+ENME201-0101, Sami Ainane
+ENME272-0201, Mohammad Fazelpour
+PHYS260-0101, Aria Heidarian
+
+Schedule 2:
+ENES102-0201, Unknown
+ENES200-0503, Unknown
+ENME201-0101, Sami Ainane
+ENME272-0201, Mohammad Fazelpour
+PHYS260-0301, Hailu Gebremariam
+
+Schedule 3:
+ENES102-0401, Unknown
+ENES200-0503, Unknown
+ENME201-0101, Sami Ainane
+ENME272-0201, Mohammad Fazelpour
+PHYS260-0301, Hailu Gebremariam
+
+Schedule 4:
+ENES102-0201, Unknown
+ENES200-0503, Unknown
+ENME201-0101, Sami Ainane
+ENME272-0201, Mohammad Fazelpour
+PHYS260-0302, Hailu Gebremariam
+
+Schedule 5:
+ENES102-0401, Unknown
+ENES200-0503, Unknown
+ENME201-0101, Sami Ainane
+ENME272-0201, Mohammad Fazelpour
+PHYS260-0302, Hailu Gebremariam
+
+Schedule 6:
+ENES102-0301, Unknown
+ENES200-0503, Unknown
+ENME201-0101, Sami Ainane
+ENME272-0201, Mohammad Fazelpour
+PHYS260-0103, Aria Heidarian
+
+Schedule 7:
+ENES102-0105, Unknown
+ENES200-0503, Unknown
+ENME201-0101, Sami Ainane
+ENME272-0201, Mohammad Fazelpour
+PHYS260-0103, Aria Heidarian
+
+Schedule 8:
+ENES102-0902, Unknown
+ENES200-0503, Unknown
+ENME201-0101, Sami Ainane
+ENME272-0201, Mohammad Fazelpour
+PHYS260-0103, Aria Heidarian
