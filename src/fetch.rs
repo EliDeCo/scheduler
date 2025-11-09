@@ -1,8 +1,8 @@
+use crate::schedule::{get_days, to_military};
 use crate::structs::*;
-use crate::schedule::{to_military, get_days};
+use futures::{StreamExt, stream};
 use reqwest::Client;
 use std::collections::HashMap;
-use futures::{stream, StreamExt};
 const CONCURRENCY: usize = 10;
 
 ///returns the sectionmap for a given course and semester from the UMD API
@@ -19,8 +19,7 @@ pub async fn get_sections(
         .send()
         .await?
         .text()
-        .await?
-        ;
+        .await?;
     //collection data into the input struct
     let input_list: Vec<SectionInput> = serde_json::from_str(&raw)?;
     let mut output_map: SectionMap = HashMap::new();
@@ -81,20 +80,34 @@ pub async fn get_sections(
 }
 
 ///Fetches all courses concurrently and returns a CourseMap
-pub async fn fetch_all_courses(ideal_courses: &[String], semester: String) -> CourseMap {
-    let semester = semester;
-
-    let results: Vec<(String, Result<SectionMap, Box<dyn std::error::Error>>)> = stream::iter(ideal_courses.iter().cloned())
-        .map(|course: String| {
-            let sem = semester.clone();
-            async move {
-                let res = get_sections(&course, &sem).await;
-                (course, res)
-            }
-        })
-        .buffer_unordered(CONCURRENCY)
-        .collect()
-        .await;
+pub async fn fetch_all_courses(ideal_courses: &[String], semester: &String) -> CourseMap {
+    let results: Vec<(String, Result<SectionMap, Box<dyn std::error::Error>>)> =
+        stream::iter(ideal_courses.iter().cloned())
+            .map(|course: String| {
+                let sem = semester.clone();
+                async move {
+                    let res = get_sections(&course, &sem).await;
+                    //retry up to 3 times if there was an error
+                    let mut count: i8 = 0;
+                    while res.is_err() && count < 3 {
+                        count += 1;
+                        println!(
+                            "Retrying fetch for course {} (attempt {})",
+                            course,
+                            count + 1
+                        );
+                        let res_retry = get_sections(&course, &sem).await;
+                        if res_retry.is_ok() {
+                            return (course, res_retry);
+                        }
+                    }
+                    //return the final result (either success or failure)
+                    (course, res)
+                }
+            })
+            .buffer_unordered(CONCURRENCY)
+            .collect()
+            .await;
 
     let mut all_courses: CourseMap = HashMap::new();
     for (course, secs_res) in results {

@@ -1,6 +1,12 @@
-use crate::structs::{BuildingData, ScheduleWithAlternates, Section, StartEnd};
+use crate::structs::*;
 use haversine_rs::{distance, point::Point, units::Unit};
 use std::collections::HashMap;
+
+//walk speed in meters per second
+const WALK_SPEED: f32 = 1.42;
+//earlist and latest time to go to class
+const EARLIST: u32 = 900;
+const LATEST: u32 = 1700;
 
 ///Turns computer formatted time into human formatted time
 pub fn un_military_time(time: u32) -> String {
@@ -217,8 +223,6 @@ pub fn rating(schedule: &ScheduleWithAlternates, all_alternates: &Vec<String>) -
     return prof_rating + av_alt_rating + alternate_diversity_rating;
 }
 
-
-
 ///Formats alternates to be nice on the eyes
 pub fn format_alternates(sections: &Vec<Section>, threshold: usize) -> String {
     //count occurrences
@@ -250,7 +254,7 @@ pub fn format_alternates(sections: &Vec<Section>, threshold: usize) -> String {
     return output.join("");
 }
 
-//compute median of a collection of floats
+///compute median of a collection of floats
 fn median(numbers: &Vec<f32>) -> f32 {
     let mut numbers = numbers.clone();
     numbers.sort_by(|a, b| a.partial_cmp(b).unwrap());
@@ -313,4 +317,125 @@ pub fn get_days(input: String) -> Vec<u32> {
     }
 
     output
+}
+
+///Generates all potential schedules from the desired courses
+pub fn get_potential_schedules(
+    desired_courses: CourseMap,
+    buildings: &BuildingMap,
+) -> Vec<Schedule> {
+    let mut potential_schedules: Vec<Schedule> = Vec::new();
+    let mut count: u32 = 0;
+
+    'mainloop: for (_, sections) in desired_courses {
+        count += 1;
+        if count == 1 {
+            //initialize the potential schedules with the first course, then move on to the next course
+            potential_schedules.push(vec![sections.values().next().unwrap().clone()]);
+            continue 'mainloop;
+        }
+
+        let mut new_potential_schedules: Vec<Schedule> = Vec::new();
+        for (_, new_section) in sections {
+            'schedule_loop: for schedule in potential_schedules.clone() {
+                for section in schedule.clone() {
+                    if is_conflict(
+                        &section,
+                        &new_section,
+                        &buildings,
+                        WALK_SPEED,
+                        EARLIST,
+                        LATEST,
+                    ) {
+                        continue 'schedule_loop;
+                    }
+                }
+                //if we reach here, every section in the currently selected schedule is compatible with the new section
+                //this means that this schedule is valid, as it can hold 1 of every course we have iterated through at this point in time
+                let mut new_schedule: Vec<Section> = schedule.clone();
+                new_schedule.push(new_section.clone());
+                //sort courses alphabetically within their schedules
+                new_schedule.sort_by(|a, b| a.course.cmp(&b.course));
+                new_potential_schedules.push(new_schedule);
+            }
+        }
+        potential_schedules = new_potential_schedules;
+    }
+
+    potential_schedules
+}
+
+///Computes possible alternates for all the given potential schedules
+pub fn schedules_with_alternatives(
+    potential_schedules: Vec<Schedule>,
+    buildings: &BuildingMap,
+    alternates: &CourseMap,
+    required: &Vec<String>,
+) -> Vec<ScheduleWithAlternates> {
+    let mut schedules_with_alternates: Vec<ScheduleWithAlternates> = Vec::new();
+    for schedule in potential_schedules {
+        //generate the schedule with all possible alternates
+        let mut single_with_alts: Vec<(Section, Vec<Section>)> = schedule
+            .iter()
+            .map(|s| {
+                (
+                    s.clone(),
+                    s.find_alt(
+                        schedule.clone(),
+                        buildings,
+                        WALK_SPEED,
+                        EARLIST,
+                        LATEST,
+                        alternates,
+                        required,
+                    ),
+                )
+            })
+            .collect();
+
+        //sort alphabetically by course
+        single_with_alts.sort_by(|a, b| a.0.course.cmp(&b.0.course));
+
+        schedules_with_alternates.push(single_with_alts);
+    }
+
+    //sort by rating, highest to lowest
+    let alternates: Vec<String> = alternates.keys().cloned().collect();
+    schedules_with_alternates.sort_by(|a, b| {
+        rating(b, &alternates)
+            .partial_cmp(&rating(a, &alternates))
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+
+    schedules_with_alternates
+}
+
+///Formats schedules with alternates for display
+pub fn schedules_for_display(
+    schedules_with_alternates: Vec<ScheduleWithAlternates>,
+) -> Vec<DisplaySchedule> {
+    let mut all_schedules: Vec<DisplaySchedule> = Vec::new();
+    for schedule in schedules_with_alternates {
+        all_schedules.push(
+            schedule
+                .iter()
+                .map(|(s, a)| DisplaySection {
+                    professor: s.professor.clone(),
+                    classtimes: s.humanize_times(),
+                    course: s.course.clone(),
+                    section: s.section.clone(),
+                    seats: s.seats.clone(),
+                    alternates: {
+                        //consolidate excess alternates and format for display
+                        if a.is_empty() {
+                            String::from("N/A")
+                        } else {
+                            format_alternates(a, 4)
+                        }
+                    },
+                })
+                .collect(),
+        );
+    }
+    all_schedules
 }

@@ -1,12 +1,15 @@
+use crate::schedule::{is_conflict, un_military_time};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::schedule::{is_conflict, un_military_time};
 
+//
 pub type CourseMap = HashMap<String, SectionMap>;
 pub type SectionMap = HashMap<String, Section>;
 pub type Classtimes = HashMap<u32, Vec<StartEnd>>;
 pub type ClasstimesForHumans = Vec<String>;
-pub type ScheduleWithAlternates = Vec<(Section, Vec<Section>)>;
+pub type ScheduleWithAlternates = Vec<(Section, Vec<Section>)>; // a schedule where each section has a list of alternates
+pub type BuildingMap = HashMap<String, BuildingData>;
+pub type DisplaySchedule = Vec<DisplaySection>;
 
 pub type Schedule = Vec<Section>;
 #[derive(Debug, Deserialize, Serialize, Clone)]
