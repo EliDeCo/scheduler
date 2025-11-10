@@ -8,12 +8,16 @@ use std::{collections::HashMap, fs::File, path::Path};
 use structs::*;
 use web::launch_webpage;
 
-//FIX NOW
-//TODO: DESIGN UI (Have it be on a website)
+//DO NOW
+//TODO: Index page (where courses and semesters are chosen)
 
 
 //NEXT UP
-//TODO: Add blockout times (like work or lunch)
+//TODO: Beginning layout of display page (scroll list on left, schedule view on right)
+//TODO: Full on schedule display on right side
+//TODO: Save chache for changing sorting/times without re-fetching
+//TODO: Add moveable blockout times
+//TODO: Add blockout windows
 
 
 //EVENTUALLY FEATURES
@@ -32,6 +36,14 @@ use web::launch_webpage;
 
 #[tokio::main]
 async fn main() {
+
+
+
+
+    
+
+
+
     //INPUTS============================================================================================
     //courses that must be in every schedule
     let desired: Vec<String> = vec![
@@ -49,6 +61,8 @@ async fn main() {
         "COMM107".to_string(),
         "SPAN204".to_string(),
         "CHBE473".to_string(),
+        "INAG110".to_string(),
+        "COMM200".to_string(),
     ];
 
     let semester: String = String::from("202601");
