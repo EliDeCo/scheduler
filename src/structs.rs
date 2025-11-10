@@ -52,7 +52,7 @@ pub struct DisplaySection {
     pub alternates: String,
 }
 
-//This is the type that the API returns
+//The next two types are the onces that the course API returns
 #[derive(Debug, Deserialize)]
 pub struct SectionInput {
     pub course: String,
@@ -76,6 +76,16 @@ pub struct MeetTime {
     pub end_time: String,
 }
 
+//this is the type that the professor rating API returns
+#[derive(Debug, Deserialize, Default, PartialEq)]
+pub struct ProfRatingInput {
+    //courses: Vec<String>,
+    pub average_rating: f32,
+    //type: String,
+    //name: String,
+    //slug: String,
+}
+
 impl PartialEq for Section {
     fn eq(&self, _other: &Self) -> bool {
         self.course == _other.course && self.section == _other.section
@@ -92,13 +102,7 @@ impl Section {
         earliest: u32,
         latest: u32,
         alternates: &CourseMap,
-        required: &Vec<String>,
     ) -> Vec<Section> {
-        //if this course is required, no alternates will be given, otherwise continue with the logic
-        if required.contains(&self.course) {
-            return Vec::new();
-        }
-
         //remove the course in question
         schedule.retain(|s| s != self);
 

@@ -6,7 +6,7 @@ use std::collections::HashMap;
 const WALK_SPEED: f32 = 1.42;
 //earlist and latest time to go to class
 const EARLIST: u32 = 900;
-const LATEST: u32 = 1700;
+const LATEST: u32 = 1500;
 
 ///Turns computer formatted time into human formatted time
 pub fn un_military_time(time: u32) -> String {
@@ -219,7 +219,13 @@ pub fn rating(schedule: &ScheduleWithAlternates, all_alternates: &Vec<String>) -
         let section_nums: Vec<f32> = counts.values().copied().map(|v| v as f32).collect();
         alternate_diversity_rating += median(&section_nums);
     }
-
+    //temporarily display all three ratings for debugging
+    /* 
+    println!(
+        "Prof Rating: {}, Av Alt Rating: {}, Alt Diversity Rating: {}",
+        prof_rating, av_alt_rating, alternate_diversity_rating
+    );
+    */
     return prof_rating + av_alt_rating + alternate_diversity_rating;
 }
 
@@ -324,17 +330,19 @@ pub fn get_potential_schedules(
     desired_courses: CourseMap,
     buildings: &BuildingMap,
 ) -> Vec<Schedule> {
+    // Convert to a Vec so we can index only the first course.
+    let mut desired_courses: Vec<_> = desired_courses.into_iter().collect();
+    desired_courses.sort_by(|a, b| a.0.cmp(&b.0));
+    //sorting makes the process deterministic for testing
+
+
     let mut potential_schedules: Vec<Schedule> = Vec::new();
-    let mut count: u32 = 0;
+    //initialize will all sections of the first course
+    for section in desired_courses[0].1.values() {
+        potential_schedules.push(vec![section.clone()]);
+    }
 
-    'mainloop: for (_, sections) in desired_courses {
-        count += 1;
-        if count == 1 {
-            //initialize the potential schedules with the first course, then move on to the next course
-            potential_schedules.push(vec![sections.values().next().unwrap().clone()]);
-            continue 'mainloop;
-        }
-
+    for (_, sections) in desired_courses.iter().skip(1) {
         let mut new_potential_schedules: Vec<Schedule> = Vec::new();
         for (_, new_section) in sections {
             'schedule_loop: for schedule in potential_schedules.clone() {
@@ -370,7 +378,6 @@ pub fn schedules_with_alternatives(
     potential_schedules: Vec<Schedule>,
     buildings: &BuildingMap,
     alternates: &CourseMap,
-    required: &Vec<String>,
 ) -> Vec<ScheduleWithAlternates> {
     let mut schedules_with_alternates: Vec<ScheduleWithAlternates> = Vec::new();
     for schedule in potential_schedules {
@@ -387,7 +394,6 @@ pub fn schedules_with_alternatives(
                         EARLIST,
                         LATEST,
                         alternates,
-                        required,
                     ),
                 )
             })

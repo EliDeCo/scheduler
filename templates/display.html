@@ -17,7 +17,7 @@
             <h3>Schedule {{ loop.index }}:</h3>
             <ul>
                 {% for section in schedule %}
-                    <li><b>{{ section.course }} - {{ section.section }} with {{ section.professor.name }} (Rating: {{ section.professor.rating }})</b></li>
+                    <li><b>{{ section.course }} - {{ section.section }} with {{ section.professor.name }} (Rating: {{ section.professor.rating | round(2) }})</b></li>
                     <ul>
                         {% for meeting in section.classtimes %}
                             <li>{{ meeting }}</li>

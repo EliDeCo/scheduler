@@ -24,6 +24,9 @@ pub async fn get_sections(
     let input_list: Vec<SectionInput> = serde_json::from_str(&raw)?;
     let mut output_map: SectionMap = HashMap::new();
 
+    //map for storing professor ratings
+    let mut rating_map: HashMap<String, f32> = HashMap::new();
+
     //format it into the output
     for section_input in input_list {
         //iterate through each section
@@ -62,11 +65,61 @@ pub async fn get_sections(
             section_input.waitlist.parse().unwrap_or_default(),
         ];
 
+        //get professor rating data
+        let rating: f32;
+        if professor == "Unknown" {
+            rating = 0.0;
+        } else if let Some(r) = rating_map.get(&professor) {
+            rating = *r;
+        } else {
+            let (firstname, lastname) = professor.split_once(' ').unwrap_or_default();
+            let mut tries: u8 = 0;
+            loop {
+                let raw: Option<String> = async {
+                    Some(
+                        client
+                            .get(format!(
+                            "https://planetterp.com/api/v1/professor?name={}%20{}",
+                            firstname, lastname
+                            ))
+                            .send()
+                            .await.ok()?
+                            .text()
+                            .await.ok()?
+                    )
+                }
+                .await;
+                if let Some(data) = raw {
+                    let prof_data: ProfRatingInput = serde_json::from_str(&data).unwrap_or_default();
+                    if prof_data != ProfRatingInput::default() {
+                        rating = prof_data.average_rating;
+                        rating_map.insert(professor.clone(), rating);
+                        println!(
+                            "Retrieved rating {} for professor {}",
+                            rating, professor
+                        );
+                        break;
+                    }
+                }
+                tries += 1;
+                if tries >= 3 {
+                    rating = 0.0;
+                    rating_map.insert(professor.clone(), rating);
+                    println!(
+                        "Could not retrieve rating for professor {} after 3 tries",
+                        professor
+                    );
+                    break;
+                }
+            }
+        }
+
+
         //compile section struct, formatted for output
         let section_formatted: Section = Section {
             professor: ProfData {
                 name: professor,
-                rating: 0.0,
+                rating: rating,
             },
             classtimes: classtimes,
             course: course_name,
@@ -91,11 +144,11 @@ pub async fn fetch_all_courses(ideal_courses: &[String], semester: &String) -> C
                     let mut count: i8 = 0;
                     while res.is_err() && count < 3 {
                         count += 1;
-                        println!(
-                            "Retrying fetch for course {} (attempt {})",
-                            course,
-                            count + 1
-                        );
+                        //println!(
+                        //    "Retrying fetch for course {} (attempt {})",
+                        //    course,
+                        //    count + 1
+                        //);
                         let res_retry = get_sections(&course, &sem).await;
                         if res_retry.is_ok() {
                             return (course, res_retry);

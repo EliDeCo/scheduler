@@ -8,16 +8,25 @@ use std::{collections::HashMap, fs::File, path::Path};
 use structs::*;
 use web::launch_webpage;
 
-//TODO: Starting with one random section does not work, we need to start with all sections and build from there
-//TODO: Add custom courses
+//FIX NOW
 //TODO: DESIGN UI (Have it be on a website)
-//TODO: Update seat values for each given course
-//TODO: Add in professor ratings
-//TODO: Add lunch break option
+
+
+//NEXT UP
+//TODO: Add blockout times (like work or lunch)
+
+
+//EVENTUALLY FEATURES
+//TODO: Sign in and save favorite schedules
+//TODO: Share courses via link
 //TODO: Sort by walking distance
 //TODO: Professor rating multiplier
 //TODO: Add Gened suggestor
+//TODO: Let user add custom courses (and have them be saved)
 //TODO: AI suggestions
+//TODO: Map visualization of schedule
+
+
 
 //127.0.0.1:7878/display
 
@@ -25,17 +34,13 @@ use web::launch_webpage;
 async fn main() {
     //INPUTS============================================================================================
     //courses that must be in every schedule
-    let required: Vec<String> = vec![
+    let desired: Vec<String> = vec![
         "PHYS260".to_string(),
         "ENES200".to_string(),
-        //"UMRO".to_string(),
-    ];
-
-    //courses that must fit in every schedule but are eligible to have alternates
-    let preferred: Vec<String> = vec![
         "ENME272".to_string(),
         "ENME201".to_string(),
         "ENES102".to_string(),
+        //"UMRO".to_string(),
     ];
 
     //alternates can replace preferred courses as long as they don't overlap with required ones
@@ -43,18 +48,19 @@ async fn main() {
         "FREN103".to_string(),
         "COMM107".to_string(),
         "SPAN204".to_string(),
+        "CHBE473".to_string(),
     ];
 
     let semester: String = String::from("202601");
     //==================================================================================================
 
     let every_course: Vec<String> =
-        [required.clone(), preferred.clone(), alternates.clone()].concat();
+        [desired.clone(), alternates.clone()].concat();
     let every_course: CourseMap = fetch_all_courses(&every_course, &semester).await;
 
     let desired_courses: CourseMap = every_course
         .iter()
-        .filter(|(k, _)| required.contains(k) || preferred.contains(k))
+        .filter(|(k, _)| desired.contains(k))
         .map(|(k, v)| (k.clone(), v.clone()))
         .collect();
 
@@ -78,7 +84,6 @@ async fn main() {
         potential_schedules,
         &buildings,
         &alternate_courses,
-        &required,
     );
 
     //format for display
