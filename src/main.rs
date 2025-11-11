@@ -52,7 +52,7 @@ async fn main() {
         "ENME272".to_string(),
         "ENME201".to_string(),
         "ENES102".to_string(),
-        //"UMRO".to_string(),
+        "UMRO".to_string(),
     ];
 
     //alternates can replace preferred courses as long as they don't overlap with required ones
@@ -70,7 +70,25 @@ async fn main() {
 
     let every_course: Vec<String> =
         [desired.clone(), alternates.clone()].concat();
-    let every_course: CourseMap = fetch_all_courses(&every_course, &semester).await;
+    let mut every_course: CourseMap = fetch_all_courses(&every_course, &semester).await;
+    
+    //add custom sections
+    let path: &Path = Path::new("cache/custom.json");
+    let file: Result<File, std::io::Error> = File::open(path);
+    if file.is_err() {
+        println!("No custom sections file found, skipping ...");
+    } else {
+        let custom_sections: CourseMap =
+            serde_json::from_reader(file.unwrap()).unwrap_or_default();
+        if custom_sections.is_empty() {
+            println!("No custom sections to insert or error reading custom sections for semester");
+        }
+        let custom_length = custom_sections.len();
+        for (id, section) in custom_sections {
+            every_course.insert(id, section);
+        }
+        println!("Inserted {} custom section(s)", custom_length);
+    }
 
     let desired_courses: CourseMap = every_course
         .iter()

@@ -6,7 +6,7 @@ use std::collections::HashMap;
 const WALK_SPEED: f32 = 1.42;
 //earlist and latest time to go to class
 const EARLIST: u32 = 900;
-const LATEST: u32 = 1500;
+const LATEST: u32 = 1700;
 
 ///Turns computer formatted time into human formatted time
 pub fn un_military_time(time: u32) -> String {
